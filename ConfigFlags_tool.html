@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bit Configuration Editor with Full Descriptions</title>
+    <style>
+        table {
+            width: 60%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .set {
+            font-weight: bold;
+        }
+        input[type="text"], button {
+            margin-top: 10px;
+            padding: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bit Configuration Editor with Full Descriptions</h2>
+    <input type="text" id="inputValue" placeholder="Enter hex or decimal value" value="0x00000000""/>
+    <button onclick="updateValue()">Update Value</button>
+    <table id="bitTable">
+        <thead>
+            <tr>
+                <th>Bit #</th>
+                <th>Value</th>
+                <th>Explanation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Bit rows will be inserted here -->
+        </tbody>
+    </table>
+    <p>Hexadecimal: <span id="hexValue">-</span></p>
+    <p>Decimal: <span id="decValue">-</span></p>
+
+    <script>
+        const bitConfigurations = [
+            { set: "Frame pending mechanism enabled (recommended)", unset: "Frame pending mechanism disabled" },
+            { set: "Activate very long button press to switch off", unset: "Deactivate very long button press to switch off" },
+            { set: "Deprecated, to not use", unset: "Deprecated, to not use" },
+            { set: "Send config uplink in response to modification downlink (recommended)", unset: "Do not send config uplink in response to modification downlink" },
+            { set: "Wi-Fi payload is not encrypted at application level", unset: "Wi-Fi payload is encrypted at application level" },
+            { set: "Activate BLE connectivity interface at start time (recommended)", unset: "Do not activate BLE connectivity interface at start" },
+            { set: "First Wi-Fi scan when geolocation starts", unset: "Geoloc start message (No first Wi-Fi scan) when geolocation starts" },
+            { set: "LED blinks when GPS fix received (for testing)", unset: "LED does not blink when GPS fix received (recommended)" },
+            { set: "Enable sending of motion start message", unset: "Disable sending of motion start message" },
+            { set: "Enable sending of motion end message", unset: "Disable sending of motion end message" },
+            { set: "Enable new OTA join when leaving OFF mode", unset: "Disable new OTA join when leaving OFF mode" },
+            { set: "Asymmetric BLE pairing rejected", unset: "Asymmetric BLE pairing accepted" },
+            { set: "Enable Long Wi-Fi payload with up to 12 BSSID", unset: "Disable Long Wi-Fi payload (only 4 BSSIDs" },
+            { set: "Enable Collection Long Report", unset: "Disable Collection Long Report" },
+            { set: "Enable autostart of tracker when leaving shipping state", unset: "Disable autostart of tracker when leaving shipping state" },
+            { set: "Forbid mode OFF", unset: "Allow mode OFF" },
+            { set: "Play a melody during SOS", unset: "Remain silent during SOS" },
+            { set: "Enable automatic data rate selection for long payloads", unset: "Disable automatic data rate selection for long payloads" },
+            { set: "Enable extended position payload (recommended)", unset: "Use legacy position payload" },
+            { set: "Reserved, do not use", unset: "Reserved, do not use" },
+            { set: "Enable the CLI over BLE", unset: "Disable the CLI over BLE" },
+            { set: "BLE passkey authentication enabled", unset: "BLE passkey authentication disabled" },
+            { set: "Enable GNSS fix after WiFi scan when static (experimental)", unset: "Do not enable GNSS fix after WiFi scan when tracker is static (recommended)" },
+            { set: "Enable Wi-Fi beaconing (for WiFi network-based location)", unset: "Disable Wi-Fi beaconing (recommended)" },
+            { set: "Enable continuous GNSS operation (recommended for first use and for higher accuracy, uses more energy)", unset: "Periodic GNSS operation (recommended after GNSS has acquired a first set of Almanac, low-power mode)" }
+            // Extend with more configurations if needed
+        ];
+
+        function updateValue() {
+            let value = document.getElementById('inputValue').value.trim();
+            let decimalValue = parseInt(value, value.startsWith('0x') ? 16 : 10);
+            updateBitDisplay(decimalValue);
+        }
+
+        function updateBitDisplay(value) {
+            const tbody = document.getElementById('bitTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = ''; // Clear existing rows
+
+            let binaryString = value.toString(2).padStart(32, '0');
+            for (let i = binaryString.length - 1; i >= 0; i--) {
+                const row = tbody.insertRow(binaryString.length - 1 - i);
+                const bitCell = row.insertCell();
+                bitCell.textContent = binaryString.length - 1 - i;
+
+                const valueCell = row.insertCell();
+                valueCell.textContent = binaryString[i];
+                valueCell.className = binaryString[i] === '1' ? 'set' : '';
+
+                const descriptionCell = row.insertCell();
+                descriptionCell.textContent = binaryString[i] === '1' ?
+                    bitConfigurations[31 - i]?.set || "No description for set" :
+                    bitConfigurations[31 - i]?.unset || "No description for unset";
+
+                row.onclick = function() {
+                    let newValue = toggleBit(value, 31 - i);
+                    updateBitDisplay(newValue);
+                };
+            }
+
+            document.getElementById('hexValue').textContent = '0x' + value.toString(16).toUpperCase();
+            document.getElementById('decValue').textContent = value.toString();
+        }
+
+        function toggleBit(value, bitIndex) {
+            return value ^ (1 << bitIndex);
+        }
+
+        window.onload = function() {
+            updateValue('0'); // Initialize with 0
+        };
+    </script>
+</body>
+</html>
